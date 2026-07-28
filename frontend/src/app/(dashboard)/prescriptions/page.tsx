@@ -310,7 +310,7 @@ export default function PrescriptionsPage() {
               <div className="flex justify-end">
                 <div className="text-center">
                   <div className="h-12 w-32 border-b border-slate-300 mb-1 flex items-end justify-center">
-                    <span className="font-serif italic text-brand-900 text-xl font-bold opacity-75">Dr. Iswariya L.</span>
+                    <span className="font-serif italic text-brand-900 text-xl font-bold opacity-75">Dr. Iswariya</span>
                   </div>
                   <p className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider">Clinician Signature</p>
                 </div>
