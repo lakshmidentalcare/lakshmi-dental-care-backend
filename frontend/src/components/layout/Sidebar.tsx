@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -37,6 +38,32 @@ const navigation = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const [doctorName, setDoctorName] = useState('Dr. Iswariya');
+
+  useEffect(() => {
+    function refreshName() {
+      try {
+        const config = JSON.parse(localStorage.getItem('LDC_CLINIC_CONFIG') || '{}');
+        if (config.superAdminName) {
+          setDoctorName(config.superAdminName);
+        } else {
+          setDoctorName('Dr. Iswariya');
+        }
+      } catch (e) {
+        setDoctorName('Dr. Iswariya');
+      }
+    }
+
+    refreshName();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('ldc_settings_updated', refreshName);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('ldc_settings_updated', refreshName);
+      }
+    };
+  }, []);
 
   return (
     <div className="flex flex-col w-64 bg-slate-900 border-r border-slate-800 h-full shadow-xl text-white">
@@ -77,11 +104,11 @@ export default function Sidebar() {
       <div className="p-4 border-t border-slate-800 bg-slate-950/60">
         <div className="flex items-center px-3 py-2 mb-2 rounded-xl bg-slate-850 border border-slate-800">
           <div className="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-md">
-            I
+            {doctorName.charAt(0) || 'I'}
           </div>
           <div className="ml-3 overflow-hidden">
-            <p className="text-xs font-bold text-slate-100 truncate">{session?.user?.name || 'Dr. Iswariya'}</p>
-            <p className="text-[10px] text-brand-300 truncate capitalize font-medium">{(session?.user as any)?.role || 'Super Admin'}</p>
+            <p className="text-xs font-extrabold text-slate-100 truncate">{doctorName}</p>
+            <p className="text-[10px] text-brand-300 truncate capitalize font-medium">Super Admin</p>
           </div>
         </div>
         <button
