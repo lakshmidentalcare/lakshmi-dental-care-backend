@@ -332,7 +332,7 @@ export default function BillingPage() {
                 <div>
                   <h2 className="text-xl font-black text-brand-800 uppercase tracking-wide">Lakshmi Dental Care</h2>
                   <p className="text-[10px] text-slate-500 font-medium">NO.72, BARATHIPURAM MAIN ROAD, GOVINDASALAI, PUDUCHERRY-605011</p>
-                  <p className="text-[10px] text-slate-500 font-bold">Phone: +91 86808 55897 | Reg No: DENT-TN-8827</p>
+                  <p className="text-[10px] text-slate-500 font-bold">Phone: +91 86808 55897 | Reg No: 1463</p>
                 </div>
               </div>
               <div className="text-right">
@@ -353,8 +353,8 @@ export default function BillingPage() {
               </div>
               <div className="text-right">
                 <h4 className="font-extrabold text-slate-400 uppercase text-[9px] mb-1">Attending Clinician</h4>
-                <p className="font-bold text-slate-900">Dr. Iswariya Lakshmi, BDS</p>
-                <p className="text-[10px] text-slate-500">Prosthodontist & Implantologist</p>
+                <p className="font-bold text-slate-900">Dr. Iswariya, BDS</p>
+                <p className="text-[10px] text-slate-500 font-semibold">Chief Dental Surgeon</p>
               </div>
             </div>
 
