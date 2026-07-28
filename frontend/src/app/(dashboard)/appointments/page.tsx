@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Calendar, Clock, User, Stethoscope, CheckCircle2, Download, Trash2 } from 'lucide-react';
 import { exportToCSV } from '@/utils/exportUtils';
 import { Patient } from '../patients/page';
+import { syncSaveToCloud, syncLoadFromCloud } from '@/utils/cloudSync';
 
 type Appointment = {
   id: string;
@@ -37,23 +38,25 @@ export default function AppointmentsPage() {
   const [time, setTime] = useState('10:00 AM');
 
   useEffect(() => {
-    try {
-      const savedPatients = localStorage.getItem('LDC_PATIENTS');
-      if (savedPatients) setPatients(JSON.parse(savedPatients));
+    async function loadData() {
+      const loadedAppts = await syncLoadFromCloud('LDC_APPOINTMENTS', INITIAL_APPOINTMENTS);
+      setAppointments(loadedAppts);
 
-      const savedAppts = localStorage.getItem('LDC_APPOINTMENTS');
-      if (savedAppts) setAppointments(JSON.parse(savedAppts));
-    } catch (e) { console.error(e); }
+      const loadedPatients = await syncLoadFromCloud('LDC_PATIENTS', []);
+      setPatients(loadedPatients);
+    }
+    loadData();
+
+    const interval = setInterval(loadData, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  const saveAppointmentsToStorage = (updated: Appointment[]) => {
+  const saveAppointmentsToStorage = async (updated: Appointment[]) => {
     setAppointments(updated);
-    try {
-      localStorage.setItem('LDC_APPOINTMENTS', JSON.stringify(updated));
-    } catch (e) { console.error(e); }
+    await syncSaveToCloud('LDC_APPOINTMENTS', updated);
   };
 
-  const handleBookAppointment = (e: React.FormEvent) => {
+  const handleBookAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
     const selectedPatient = patients.find(p => p.id === patientId);
 
@@ -69,19 +72,19 @@ export default function AppointmentsPage() {
       status: 'SCHEDULED'
     };
 
-    saveAppointmentsToStorage([newAppt, ...appointments]);
+    await saveAppointmentsToStorage([newAppt, ...appointments]);
     setIsModalOpen(false);
     alert('Appointment booked successfully!');
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Cancel and remove this appointment?')) {
       const updated = appointments.filter(a => a.id !== id);
-      saveAppointmentsToStorage(updated);
+      await saveAppointmentsToStorage(updated);
     }
   };
 
-  const handleStatusToggle = (id: string) => {
+  const handleStatusToggle = async (id: string) => {
     const updated = appointments.map(a => {
       if (a.id === id) {
         const nextStatus = a.status === 'SCHEDULED' ? 'IN_CHAIR' : a.status === 'IN_CHAIR' ? 'COMPLETED' : 'SCHEDULED';
@@ -89,7 +92,7 @@ export default function AppointmentsPage() {
       }
       return a;
     });
-    saveAppointmentsToStorage(updated);
+    await saveAppointmentsToStorage(updated);
   };
 
   const handleExportCSV = () => {
