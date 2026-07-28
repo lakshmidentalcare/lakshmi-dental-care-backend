@@ -1,10 +1,37 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Bell, Sparkles, Search, ShieldCheck } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
 export default function Header() {
   const { data: session } = useSession();
+  const [doctorName, setDoctorName] = useState('Dr. Iswariya');
+
+  useEffect(() => {
+    function refreshName() {
+      try {
+        const config = JSON.parse(localStorage.getItem('LDC_CLINIC_CONFIG') || '{}');
+        if (config.superAdminName) {
+          setDoctorName(config.superAdminName);
+        } else {
+          setDoctorName('Dr. Iswariya');
+        }
+      } catch (e) {
+        setDoctorName('Dr. Iswariya');
+      }
+    }
+
+    refreshName();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('ldc_settings_updated', refreshName);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('ldc_settings_updated', refreshName);
+      }
+    };
+  }, []);
 
   return (
     <header className="h-16 bg-white border-b border-slate-200/80 flex items-center justify-between px-8 shadow-sm relative z-10">
@@ -43,11 +70,11 @@ export default function Header() {
         {/* User Badge */}
         <div className="flex items-center space-x-3 border-l border-slate-200 pl-5">
           <div className="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-xs shadow-md">
-            I
+            {doctorName.charAt(0) || 'I'}
           </div>
           <div className="hidden sm:block text-left">
-            <p className="text-xs font-bold text-slate-800">{session?.user?.name || 'Dr. Iswariya'}</p>
-            <p className="text-[10px] text-brand-700 font-semibold uppercase">{(session?.user as any)?.role || 'Super Admin'}</p>
+            <p className="text-xs font-extrabold text-slate-900">{doctorName}</p>
+            <p className="text-[10px] text-brand-700 font-semibold uppercase">Super Admin</p>
           </div>
         </div>
 
