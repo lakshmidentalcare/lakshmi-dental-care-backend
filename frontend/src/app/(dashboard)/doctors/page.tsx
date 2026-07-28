@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { UserPlus, Shield, Edit, Trash2, CheckCircle2, UserCheck, Stethoscope, Award, Mail, Phone } from 'lucide-react';
 import { exportToCSV } from '@/utils/exportUtils';
+import { syncSaveToCloud, syncLoadFromCloud } from '@/utils/cloudSync';
 
 type StaffMember = {
   id: string;
@@ -41,24 +42,30 @@ export default function DoctorsStaffPage() {
   });
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('LDC_STAFF');
-      if (saved) {
-        setStaffList(JSON.parse(saved));
-      } else {
-        localStorage.setItem('LDC_STAFF', JSON.stringify(INITIAL_STAFF));
-      }
-    } catch (e) {
-      console.error(e);
+    async function loadStaff() {
+      const loaded = await syncLoadFromCloud('LDC_STAFF', INITIAL_STAFF);
+      setStaffList(loaded);
     }
+    loadStaff();
   }, []);
 
-  const saveStaffToStorage = (updated: StaffMember[]) => {
+  const saveStaffToStorage = async (updated: StaffMember[]) => {
     setStaffList(updated);
-    try {
-      localStorage.setItem('LDC_STAFF', JSON.stringify(updated));
-    } catch (e) {
-      console.error(e);
+    await syncSaveToCloud('LDC_STAFF', updated);
+
+    // If Super Admin name changed, update LDC_CLINIC_CONFIG as well!
+    const superAdmin = updated.find(s => s.role === 'SUPER_ADMIN' || s.id === '1');
+    if (superAdmin) {
+      try {
+        const config = JSON.parse(localStorage.getItem('LDC_CLINIC_CONFIG') || '{}');
+        const updatedConfig = {
+          ...config,
+          superAdminName: superAdmin.name,
+          superAdminSpecialization: superAdmin.specialization,
+          regNumber: superAdmin.regNumber || config.regNumber
+        };
+        await syncSaveToCloud('LDC_CLINIC_CONFIG', updatedConfig);
+      } catch (e) { console.error(e); }
     }
   };
 
@@ -74,7 +81,7 @@ export default function DoctorsStaffPage() {
     setIsModalOpen(true);
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email) {
       alert('Please fill in Staff Name and Email Address.');
@@ -83,7 +90,7 @@ export default function DoctorsStaffPage() {
 
     if (selectedStaff) {
       const updated = staffList.map(s => s.id === selectedStaff.id ? { ...s, ...formData } as StaffMember : s);
-      saveStaffToStorage(updated);
+      await saveStaffToStorage(updated);
     } else {
       const newStaff: StaffMember = {
         id: 'stf-' + Date.now(),
@@ -91,19 +98,19 @@ export default function DoctorsStaffPage() {
         email: formData.email || '',
         phone: formData.phone || '',
         role: formData.role || 'DENTIST',
-        regNumber: formData.regNumber || 'DENT-TN-' + Math.floor(1000 + Math.random() * 9000),
+        regNumber: formData.regNumber || '1463',
         specialization: formData.specialization || 'General Dentistry',
         status: 'ACTIVE'
       };
-      saveStaffToStorage([newStaff, ...staffList]);
+      await saveStaffToStorage([newStaff, ...staffList]);
     }
     setIsModalOpen(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to remove this staff member?')) {
       const updated = staffList.filter(s => s.id !== id);
-      saveStaffToStorage(updated);
+      await saveStaffToStorage(updated);
     }
   };
 
@@ -217,8 +224,8 @@ export default function DoctorsStaffPage() {
                   type="text" 
                   value={formData.name} 
                   onChange={e => setFormData({...formData, name: e.target.value})}
-                  placeholder="Dr. Rajesh Kumar" 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none font-medium"
+                  placeholder="Dr. Iswariya" 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none font-bold"
                   required
                 />
               </div>
@@ -228,7 +235,7 @@ export default function DoctorsStaffPage() {
                 <select 
                   value={formData.role} 
                   onChange={e => setFormData({...formData, role: e.target.value as any})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none font-bold"
                 >
                   <option value="SUPER_ADMIN">Clinic Super Admin</option>
                   <option value="DENTIST">Senior Dentist</option>
@@ -246,8 +253,8 @@ export default function DoctorsStaffPage() {
                   type="text" 
                   value={formData.specialization} 
                   onChange={e => setFormData({...formData, specialization: e.target.value})}
-                  placeholder="Orthodontics, Endodontics, Front Office" 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none"
+                  placeholder="Chief Dental Surgeon" 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none font-medium"
                 />
               </div>
 
@@ -281,8 +288,8 @@ export default function DoctorsStaffPage() {
                   type="text" 
                   value={formData.regNumber} 
                   onChange={e => setFormData({...formData, regNumber: e.target.value})}
-                  placeholder="DENT-TN-8827" 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none font-mono"
+                  placeholder="1463" 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none font-mono font-bold"
                 />
               </div>
 
