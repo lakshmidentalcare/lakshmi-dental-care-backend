@@ -5,6 +5,7 @@ import { Printer, Download, Plus, Trash2, CheckCircle2, Image as ImageIcon, File
 import { exportToCSV, exportElementAsImage } from '@/utils/exportUtils';
 import { MASTER_DENTAL_TREATMENTS } from '@/data/treatmentsData';
 import { Patient } from '../patients/page';
+import { syncSaveToCloud, syncLoadFromCloud } from '@/utils/cloudSync';
 
 type BillingItem = {
   id?: string;
@@ -60,20 +61,22 @@ export default function BillingPage() {
   const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
 
   useEffect(() => {
-    try {
-      const savedPatients = localStorage.getItem('LDC_PATIENTS');
-      if (savedPatients) setPatients(JSON.parse(savedPatients));
+    async function loadData() {
+      const loadedInvoices = await syncLoadFromCloud('LDC_INVOICES', INITIAL_INVOICES);
+      setInvoices(loadedInvoices);
 
-      const savedInvoices = localStorage.getItem('LDC_INVOICES');
-      if (savedInvoices) setInvoices(JSON.parse(savedInvoices));
-    } catch (e) { console.error(e); }
+      const loadedPatients = await syncLoadFromCloud('LDC_PATIENTS', []);
+      setPatients(loadedPatients);
+    }
+    loadData();
+
+    const interval = setInterval(loadData, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  const saveInvoicesToStorage = (updated: Invoice[]) => {
+  const saveInvoicesToStorage = async (updated: Invoice[]) => {
     setInvoices(updated);
-    try {
-      localStorage.setItem('LDC_INVOICES', JSON.stringify(updated));
-    } catch (e) { console.error(e); }
+    await syncSaveToCloud('LDC_INVOICES', updated);
   };
 
   const handleProcedureSelect = (procName: string) => {
