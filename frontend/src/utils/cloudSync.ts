@@ -1,13 +1,16 @@
-// Cross-device Cloud Sync helper for Lakshmi Dental Care
+// Cross-device GitHub Cloud Sync helper for Lakshmi Dental Care
 export async function syncSaveToCloud(key: string, data: any) {
   // Save to LocalStorage instantly for local responsiveness
   try {
     localStorage.setItem(key, JSON.stringify(data));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('ldc_settings_updated'));
+    }
   } catch (e) {
     console.error('LocalStorage save failed:', e);
   }
 
-  // Push to serverless cloud endpoint for cross-device sync
+  // Push to serverless cloud endpoint backed by GitHub DB for cross-device sync
   try {
     await fetch('/api/sync', {
       method: 'POST',
@@ -27,6 +30,9 @@ export async function syncLoadFromCloud(key: string, defaultFallback: any) {
       const cloudState = await res.json();
       if (cloudState && cloudState[key]) {
         localStorage.setItem(key, JSON.stringify(cloudState[key]));
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('ldc_settings_updated'));
+        }
         return cloudState[key];
       }
     }
