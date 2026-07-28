@@ -19,7 +19,7 @@ export default function Header() {
               PRO CLINIC
             </span>
           </h2>
-          <p className="text-[10px] text-slate-500 font-medium">Puducherry • Reg: DENT-TN-8827</p>
+          <p className="text-[10px] text-slate-500 font-medium">Puducherry • Reg: 1463</p>
         </div>
       </div>
 
