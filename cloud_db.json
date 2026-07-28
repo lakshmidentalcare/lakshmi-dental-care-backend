@@ -6,6 +6,21 @@
     "regNumber": "1463",
     "phone": "+91 86808 55897",
     "email": "lakshmidentalcare5@gmail.com",
-    "address": "No.72, Barathipuram Main Road, Govindasalai, Puducherry-605011"
-  }
+    "address": "No.72, Barathipuram Main Road, Govindasalai, Puducherry-605011",
+    "gstRate": 18,
+    "currencySymbol": "₹",
+    "invoicePrefix": "INV-2026-"
+  },
+  "LDC_STAFF": [
+    {
+      "id": "1",
+      "name": "Dr. Iswariya",
+      "email": "admin@lakshmidental.com",
+      "phone": "9840001111",
+      "role": "SUPER_ADMIN",
+      "regNumber": "1463",
+      "specialization": "Chief Dental Surgeon",
+      "status": "ACTIVE"
+    }
+  ]
 }
