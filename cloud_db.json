@@ -1,0 +1,11 @@
+{
+  "LDC_CLINIC_CONFIG": {
+    "superAdminName": "Dr. Iswariya",
+    "superAdminSpecialization": "Chief Dental Surgeon",
+    "clinicName": "Lakshmi Dental Care",
+    "regNumber": "1463",
+    "phone": "+91 86808 55897",
+    "email": "lakshmidentalcare5@gmail.com",
+    "address": "No.72, Barathipuram Main Road, Govindasalai, Puducherry-605011"
+  }
+}
