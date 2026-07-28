@@ -18,7 +18,7 @@ type Appointment = {
 };
 
 const INITIAL_APPOINTMENTS: Appointment[] = [
-  { id: 'app-1', patientName: 'Rahul Sharma', patientPhone: '9840112233', dentistName: 'Dr. Iswariya Lakshmi', chairName: 'Chair 1 (Premium)', treatment: 'Full Mouth Scaling & Polishing', date: '2026-07-28', time: '10:00 AM', status: 'IN_CHAIR' },
+  { id: 'app-1', patientName: 'Rahul Sharma', patientPhone: '9840112233', dentistName: 'Dr. Iswariya', chairName: 'Chair 1 (Premium)', treatment: 'Full Mouth Scaling & Polishing', date: '2026-07-28', time: '10:00 AM', status: 'IN_CHAIR' },
   { id: 'app-2', patientName: 'Priya Nair', patientPhone: '9840223344', dentistName: 'Dr. Ramana', chairName: 'Chair 2 (Surgical)', treatment: 'Root Canal Therapy', date: '2026-07-28', time: '11:30 AM', status: 'SCHEDULED' },
   { id: 'app-3', patientName: 'Rajesh Kannan', patientPhone: '9840334455', dentistName: 'Dr. Shruti', chairName: 'Chair 3 (Ortho)', treatment: 'Ceramic Braces Adjustments', date: '2026-07-28', time: '02:00 PM', status: 'SCHEDULED' },
 ];
@@ -30,7 +30,7 @@ export default function AppointmentsPage() {
 
   // Form
   const [patientId, setPatientId] = useState('');
-  const [dentistName, setDentistName] = useState('Dr. Iswariya Lakshmi');
+  const [dentistName, setDentistName] = useState('Dr. Iswariya');
   const [chairName, setChairName] = useState('Chair 1 (Premium Operatory)');
   const [treatment, setTreatment] = useState('General Dental Consultation');
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
@@ -227,7 +227,7 @@ export default function AppointmentsPage() {
                   onChange={e => setDentistName(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none font-bold"
                 >
-                  <option value="Dr. Iswariya Lakshmi">Dr. Iswariya Lakshmi (Senior Dentist)</option>
+                  <option value="Dr. Iswariya">Dr. Iswariya (Senior Dentist)</option>
                   <option value="Dr. Ramana Krishnamurthy">Dr. Ramana Krishnamurthy (Endodontist)</option>
                   <option value="Dr. Shruti Viswanathan">Dr. Shruti Viswanathan (Associate Dentist)</option>
                 </select>
