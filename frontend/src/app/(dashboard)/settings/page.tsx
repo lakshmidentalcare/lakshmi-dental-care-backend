@@ -1,41 +1,44 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Settings, Save, Database, Shield, Building, CreditCard, CheckCircle2, Download, RefreshCw } from 'lucide-react';
+import { Settings, Save, Database, Shield, Building, CreditCard, CheckCircle2, Download, Globe } from 'lucide-react';
+import { syncSaveToCloud, syncLoadFromCloud } from '@/utils/cloudSync';
+
+const DEFAULT_CONFIG = {
+  clinicName: 'Lakshmi Dental Care',
+  regNumber: '1463',
+  phone: '+91 86808 55897',
+  email: 'lakshmidentalcare5@gmail.com',
+  address: 'No.72, Barathipuram Main Road, Govindasalai, Puducherry-605011',
+  gstRate: 18,
+  currencySymbol: '₹',
+  invoicePrefix: 'INV-2026-',
+  chair1Name: 'Chair 1 (Premium Operatory)',
+  chair2Name: 'Chair 2 (Surgical Suite)',
+  chair3Name: 'Chair 3 (Orthodontics & Hygiene)',
+  autoBackup: true,
+};
 
 export default function SettingsPage() {
-  const [clinicConfig, setClinicConfig] = useState({
-    clinicName: 'Lakshmi Dental Care',
-    regNumber: 'DENT-TN-8827',
-    phone: '+91 86808 55897',
-    email: 'lakshmidentalcare5@gmail.com',
-    address: 'No.72, Barathipuram Main Road, Govindasalai, Puducherry-605011',
-    gstRate: 18,
-    currencySymbol: '₹',
-    invoicePrefix: 'INV-2026-',
-    chair1Name: 'Chair 1 (Premium Operatory)',
-    chair2Name: 'Chair 2 (Surgical Suite)',
-    chair3Name: 'Chair 3 (Orthodontics & Hygiene)',
-    autoBackup: true,
-  });
-
+  const [clinicConfig, setClinicConfig] = useState(DEFAULT_CONFIG);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('LDC_CLINIC_CONFIG');
-      if (saved) setClinicConfig(JSON.parse(saved));
-    } catch (e) { console.error(e); }
+    async function loadSettings() {
+      const loaded = await syncLoadFromCloud('LDC_CLINIC_CONFIG', DEFAULT_CONFIG);
+      setClinicConfig({ ...DEFAULT_CONFIG, ...loaded, regNumber: '1463' });
+    }
+    loadSettings();
   }, []);
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      localStorage.setItem('LDC_CLINIC_CONFIG', JSON.stringify(clinicConfig));
+      await syncSaveToCloud('LDC_CLINIC_CONFIG', clinicConfig);
       setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 3000);
+      setTimeout(() => setSavedSuccess(false), 3500);
     } catch (e) {
-      alert('Failed to save settings to storage.');
+      alert('Failed to save settings to cloud.');
     }
   };
 
@@ -65,15 +68,15 @@ export default function SettingsPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             <Settings className="w-6 h-6 text-brand-600" />
-            Clinic Master Settings
+            Clinic Master Settings & Cross-Device Sync
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Configure clinic profile, billing GST rates, chair allocations, and automated database backups.</p>
+          <p className="text-sm text-slate-500 mt-1">Configure clinic profile, registration numbers, tax settings, and cloud sync across all devices.</p>
         </div>
 
         {savedSuccess && (
           <div className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            Settings Saved Successfully!
+            Saved & Synced Across All Devices!
           </div>
         )}
       </div>
@@ -104,7 +107,7 @@ export default function SettingsPage() {
                 type="text" 
                 value={clinicConfig.regNumber} 
                 onChange={e => setClinicConfig({...clinicConfig, regNumber: e.target.value})}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-mono font-bold text-brand-700 outline-none" 
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-mono font-extrabold text-brand-700 outline-none" 
               />
             </div>
 
@@ -183,8 +186,8 @@ export default function SettingsPage() {
         {/* Section 3: Data Security & Backup */}
         <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
           <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Database className="w-5 h-5 text-indigo-600" />
-            Database & Data Security
+            <Globe className="w-5 h-5 text-indigo-600" />
+            Cross-Device Synchronization & Database Backup
           </h3>
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
@@ -211,7 +214,7 @@ export default function SettingsPage() {
             className="bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-8 rounded-2xl text-sm transition-all shadow-lg shadow-brand-500/20 flex items-center space-x-2"
           >
             <Save className="w-5 h-5" />
-            <span>Save All Settings</span>
+            <span>Save All Settings & Sync</span>
           </button>
         </div>
 
