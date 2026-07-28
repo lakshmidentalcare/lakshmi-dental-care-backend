@@ -237,8 +237,8 @@ export default function PrescriptionsPage() {
                 <img src="/logo.png" className="w-16 h-16 object-cover rounded-xl border border-slate-100" alt="Logo" />
                 <div>
                   <h2 className="text-2xl font-black text-brand-800 uppercase tracking-wide">Lakshmi Dental Care</h2>
-                  <p className="text-xs text-slate-600 font-bold">Dr. Iswariya Lakshmi, BDS</p>
-                  <p className="text-[10px] text-slate-500 font-medium">Reg No: DENT-TN-8827</p>
+                  <p className="text-xs text-slate-600 font-bold">Dr. Iswariya, BDS (Chief Dental Surgeon)</p>
+                  <p className="text-[10px] text-slate-500 font-medium">Reg No: 1463</p>
                 </div>
               </div>
               <div className="text-right text-[10px] text-slate-500 space-y-0.5 relative z-10">
