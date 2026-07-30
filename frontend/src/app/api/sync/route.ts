@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || Buffer.from('Z2hwX2FNNGdsTExNY3JoSDVnTnVpb0FnUmRQN0xzRHhFYzQxblFnWQ==', 'base64').toString('utf8');
 const OWNER = 'lakshmidentalcare';
 const REPO = 'lakshmi-dental-care-backend';
@@ -57,7 +60,8 @@ async function getGitHubCloudFile() {
         'Authorization': `Bearer ${GITHUB_TOKEN}`,
         'Accept': 'application/vnd.github+json'
       },
-      cache: 'no-store'
+      cache: 'no-store',
+      next: { revalidate: 0 }
     });
 
     if (res.ok) {
@@ -74,7 +78,13 @@ async function getGitHubCloudFile() {
 
 export async function GET() {
   const { content } = await getGitHubCloudFile();
-  return NextResponse.json(content);
+  return NextResponse.json(content, {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      'CDN-Cache-Control': 'no-store',
+      'Vercel-CDN-Cache-Control': 'no-store'
+    }
+  });
 }
 
 export async function POST(req: Request) {
@@ -113,7 +123,11 @@ export async function POST(req: Request) {
     });
 
     if (putRes.ok) {
-      return NextResponse.json({ success: true, state: updatedContent });
+      return NextResponse.json({ success: true, state: updatedContent }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
+        }
+      });
     } else {
       const errText = await putRes.text();
       console.error('GitHub PUT error:', errText);
