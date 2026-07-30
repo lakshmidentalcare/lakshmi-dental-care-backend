@@ -1,28 +1,32 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, Sparkles, Search, ShieldCheck } from 'lucide-react';
+import { Bell, RefreshCw } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { syncLoadFromCloud } from '@/utils/cloudSync';
 
 export default function Header() {
   const { data: session } = useSession();
   const [doctorName, setDoctorName] = useState('Dr. Iswariya');
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  useEffect(() => {
-    async function refreshName() {
-      try {
-        const config = await syncLoadFromCloud('LDC_CLINIC_CONFIG', { superAdminName: 'Dr. Iswariya' });
-        if (config && config.superAdminName) {
-          setDoctorName(config.superAdminName);
-        } else {
-          setDoctorName('Dr. Iswariya');
-        }
-      } catch (e) {
+  const refreshName = async () => {
+    setIsSyncing(true);
+    try {
+      const config = await syncLoadFromCloud('LDC_CLINIC_CONFIG', { superAdminName: 'Dr. Iswariya' });
+      if (config && config.superAdminName) {
+        setDoctorName(config.superAdminName);
+      } else {
         setDoctorName('Dr. Iswariya');
       }
+    } catch (e) {
+      setDoctorName('Dr. Iswariya');
+    } finally {
+      setTimeout(() => setIsSyncing(false), 500);
     }
+  };
 
+  useEffect(() => {
     refreshName();
     const interval = setInterval(refreshName, 3000);
     
@@ -57,6 +61,16 @@ export default function Header() {
       {/* Right Actions & User Profile */}
       <div className="flex items-center space-x-5">
         
+        {/* Manual Cloud Sync Button */}
+        <button 
+          onClick={refreshName}
+          title="Force Cloud Sync Now"
+          className="bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center space-x-1.5 border border-brand-200/60 transition-all active:scale-95"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-brand-600' : ''}`} />
+          <span className="hidden sm:inline">Sync Cloud</span>
+        </button>
+
         {/* Chair Indicators */}
         <div className="hidden md:flex items-center space-x-3 text-xs border-r border-slate-200 pr-5">
           <div className="flex items-center space-x-1.5 bg-emerald-50 text-emerald-700 font-bold px-2.5 py-1 rounded-lg">
