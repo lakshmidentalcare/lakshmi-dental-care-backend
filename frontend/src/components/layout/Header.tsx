@@ -42,33 +42,33 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200/80 flex items-center justify-between px-8 shadow-sm relative z-10">
+    <header className="h-16 bg-white border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-8 shadow-sm relative z-10">
       
       {/* Left Logo + Clinic Badge */}
-      <div className="flex items-center space-x-3">
-        <img src="/logo.png" className="w-9 h-9 object-cover rounded-xl border border-slate-100 shadow-sm" alt="Logo" />
+      <div className="flex items-center space-x-2.5">
+        <img src="/logo.png" className="w-8 h-8 sm:w-9 sm:h-9 object-cover rounded-xl border border-slate-100 shadow-sm" alt="Logo" />
         <div>
-          <h2 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
-            Lakshmi Dental Care
-            <span className="bg-brand-50 text-brand-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-brand-200/60">
-              PRO CLINIC
+          <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
+            Lakshmi Dental
+            <span className="bg-brand-50 text-brand-700 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border border-brand-200/60">
+              PRO
             </span>
           </h2>
-          <p className="text-[10px] text-slate-500 font-medium">Puducherry • Reg: 1463</p>
+          <p className="text-[9px] sm:text-[10px] text-slate-500 font-medium">Puducherry • Reg: 1463</p>
         </div>
       </div>
 
       {/* Right Actions & User Profile */}
-      <div className="flex items-center space-x-5">
+      <div className="flex items-center space-x-3 sm:space-x-5">
         
-        {/* Manual Cloud Sync Button */}
+        {/* Prominent Always-Visible Sync Cloud Button on Mobile & PC */}
         <button 
           onClick={refreshName}
           title="Force Cloud Sync Now"
-          className="bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center space-x-1.5 border border-brand-200/60 transition-all active:scale-95"
+          className="bg-brand-600 hover:bg-brand-700 text-white font-extrabold px-3 py-1.5 sm:py-2 rounded-xl text-xs flex items-center space-x-1.5 shadow-md shadow-brand-500/30 transition-all active:scale-95"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-brand-600' : ''}`} />
-          <span className="hidden sm:inline">Sync Cloud</span>
+          <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-white' : ''}`} />
+          <span className="inline font-bold">Sync Cloud</span>
         </button>
 
         {/* Chair Indicators */}
@@ -79,15 +79,9 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Notifications Button */}
-        <button className="p-2 text-slate-400 hover:text-slate-600 relative rounded-xl hover:bg-slate-100 transition-colors">
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
-          <Bell className="w-5 h-5" />
-        </button>
-
         {/* User Badge */}
-        <div className="flex items-center space-x-3 border-l border-slate-200 pl-5">
-          <div className="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-xs shadow-md">
+        <div className="flex items-center space-x-2 sm:space-x-3 border-l border-slate-200 pl-3 sm:pl-5">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-brand-700 text-white flex items-center justify-center font-bold text-xs shadow-md">
             {doctorName.charAt(0) || 'I'}
           </div>
           <div className="hidden sm:block text-left">
