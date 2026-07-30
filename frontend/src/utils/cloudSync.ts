@@ -1,4 +1,4 @@
-// Cross-device GitHub Cloud Sync helper for Lakshmi Dental Care
+// Cross-device Cloud Sync helper for Lakshmi Dental Care
 export async function syncSaveToCloud(key: string, data: any) {
   // Save to LocalStorage instantly for local responsiveness
   try {
@@ -10,15 +10,11 @@ export async function syncSaveToCloud(key: string, data: any) {
     console.error('LocalStorage save failed:', e);
   }
 
-  // Push to serverless cloud endpoint backed by GitHub DB for cross-device sync
+  // Push to cloud endpoint
   try {
-    await fetch(`/api/sync?t=${Date.now()}`, {
+    await fetch('/api/cloud-data', {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache'
-      },
-      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ key, data })
     });
   } catch (e) {
@@ -27,16 +23,9 @@ export async function syncSaveToCloud(key: string, data: any) {
 }
 
 export async function syncLoadFromCloud(key: string, defaultFallback: any) {
-  // Try loading from Vercel Cloud Sync API first with cache-busting timestamp
+  // Try loading from Cloud Data API first
   try {
-    const res = await fetch(`/api/sync?t=${Date.now()}`, {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
-      }
-    });
-
+    const res = await fetch('/api/cloud-data');
     if (res.ok) {
       const cloudState = await res.json();
       if (cloudState && cloudState[key] !== undefined) {
