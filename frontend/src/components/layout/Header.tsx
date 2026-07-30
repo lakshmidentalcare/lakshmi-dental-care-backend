@@ -3,16 +3,17 @@
 import { useState, useEffect } from 'react';
 import { Bell, Sparkles, Search, ShieldCheck } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { syncLoadFromCloud } from '@/utils/cloudSync';
 
 export default function Header() {
   const { data: session } = useSession();
   const [doctorName, setDoctorName] = useState('Dr. Iswariya');
 
   useEffect(() => {
-    function refreshName() {
+    async function refreshName() {
       try {
-        const config = JSON.parse(localStorage.getItem('LDC_CLINIC_CONFIG') || '{}');
-        if (config.superAdminName) {
+        const config = await syncLoadFromCloud('LDC_CLINIC_CONFIG', { superAdminName: 'Dr. Iswariya' });
+        if (config && config.superAdminName) {
           setDoctorName(config.superAdminName);
         } else {
           setDoctorName('Dr. Iswariya');
@@ -23,10 +24,13 @@ export default function Header() {
     }
 
     refreshName();
+    const interval = setInterval(refreshName, 3000);
+    
     if (typeof window !== 'undefined') {
       window.addEventListener('ldc_settings_updated', refreshName);
     }
     return () => {
+      clearInterval(interval);
       if (typeof window !== 'undefined') {
         window.removeEventListener('ldc_settings_updated', refreshName);
       }
