@@ -47,6 +47,9 @@ export default function DoctorsStaffPage() {
       setStaffList(loaded);
     }
     loadStaff();
+
+    const interval = setInterval(loadStaff, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const saveStaffToStorage = async (updated: StaffMember[]) => {
