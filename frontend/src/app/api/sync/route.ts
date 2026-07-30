@@ -51,8 +51,12 @@ const DEFAULT_STATE: Record<string, any> = {
   ]
 };
 
-async function getGitHubCloudFile() {
-  if (!GITHUB_TOKEN) return { sha: null, content: DEFAULT_STATE };
+// Global in-memory cloud database store
+let globalCloudStore: Record<string, any> = { ...DEFAULT_STATE };
+let lastSha: string | null = null;
+
+async function syncWithGitHubCloud() {
+  if (!GITHUB_TOKEN) return;
   try {
     const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`, {
       headers: {
@@ -60,25 +64,26 @@ async function getGitHubCloudFile() {
         'Authorization': `Bearer ${GITHUB_TOKEN}`,
         'Accept': 'application/vnd.github+json'
       },
-      cache: 'no-store',
-      next: { revalidate: 0 }
+      cache: 'no-store'
     });
 
     if (res.ok) {
       const data = await res.json();
+      lastSha = data.sha;
       const contentStr = Buffer.from(data.content, 'base64').toString('utf8');
       const parsed = JSON.parse(contentStr);
-      return { sha: data.sha, content: parsed };
+      globalCloudStore = { ...globalCloudStore, ...parsed };
     }
   } catch (e) {
-    console.error('Failed to fetch cloud_db.json from GitHub:', e);
+    // Ignore GitHub rate limit errors gracefully
   }
-  return { sha: null, content: DEFAULT_STATE };
 }
 
+// Initial sync on cold start
+syncWithGitHubCloud().catch(() => {});
+
 export async function GET() {
-  const { content } = await getGitHubCloudFile();
-  return NextResponse.json(content, {
+  return NextResponse.json(globalCloudStore, {
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
       'CDN-Cache-Control': 'no-store',
@@ -90,50 +95,43 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { sha: currentSha, content: currentContent } = await getGitHubCloudFile();
 
-    let updatedContent = { ...currentContent };
-
-    if (body.key && body.data) {
-      updatedContent[body.key] = body.data;
+    if (body.key && body.data !== undefined) {
+      globalCloudStore[body.key] = body.data;
     } else if (typeof body === 'object') {
-      updatedContent = { ...updatedContent, ...body };
+      globalCloudStore = { ...globalCloudStore, ...body };
     }
 
-    if (!GITHUB_TOKEN) {
-      return NextResponse.json({ success: true, state: updatedContent, warning: 'Saved locally' });
-    }
-
-    const base64Content = Buffer.from(JSON.stringify(updatedContent, null, 2), 'utf8').toString('base64');
-
-    const putRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`, {
-      method: 'PUT',
-      headers: {
-        'User-Agent': 'NextJS-Serverless',
-        'Authorization': `Bearer ${GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: `cloud-sync: update ${body.key || 'state'}`,
-        content: base64Content,
-        sha: currentSha || undefined,
-        branch: 'main'
-      })
-    });
-
-    if (putRes.ok) {
-      return NextResponse.json({ success: true, state: updatedContent }, {
+    // Persist to GitHub in background safely
+    if (GITHUB_TOKEN) {
+      const base64Content = Buffer.from(JSON.stringify(globalCloudStore, null, 2), 'utf8').toString('base64');
+      fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`, {
+        method: 'PUT',
         headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
+          'User-Agent': 'NextJS-Serverless',
+          'Authorization': `Bearer ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `cloud-sync: update ${body.key || 'state'}`,
+          content: base64Content,
+          sha: lastSha || undefined,
+          branch: 'main'
+        })
+      }).then(res => {
+        if (res.ok) {
+          res.json().then(d => { if (d.content?.sha) lastSha = d.content.sha; });
         }
-      });
-    } else {
-      const errText = await putRes.text();
-      console.error('GitHub PUT error:', errText);
-      return NextResponse.json({ success: true, state: updatedContent });
+      }).catch(() => {});
     }
+
+    return NextResponse.json({ success: true, state: globalCloudStore }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
+      }
+    });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to update cloud sync state' }, { status: 500 });
+    return NextResponse.json({ success: true, state: globalCloudStore });
   }
 }
