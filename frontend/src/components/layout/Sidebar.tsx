@@ -1,37 +1,35 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   Users, 
   Calendar, 
+  Receipt, 
+  Stethoscope, 
   FileText, 
-  CreditCard, 
+  FlaskConical, 
+  Package, 
   Settings, 
   LogOut,
-  Stethoscope,
-  Package,
-  Activity,
-  BarChart3,
-  BrainCircuit,
-  UserCog
+  ShieldCheck,
+  UserCheck
 } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
+import { syncLoadFromCloud } from '@/utils/cloudSync';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Patients CRM', href: '/patients', icon: Users },
   { name: 'Appointments', href: '/appointments', icon: Calendar },
-  { name: 'Patients', href: '/patients', icon: Users },
-  { name: 'X-Ray & AI Diagnostic', href: '/xrays', icon: BrainCircuit },
+  { name: 'Billing & Invoices', href: '/billing', icon: Receipt },
   { name: 'Treatments Catalog', href: '/treatments', icon: Stethoscope },
   { name: 'Prescriptions', href: '/prescriptions', icon: FileText },
-  { name: 'Lab Tracking', href: '/lab', icon: Activity },
-  { name: 'Billing & Invoices', href: '/billing', icon: CreditCard },
+  { name: 'Dental Lab Cases', href: '/lab', icon: FlaskConical },
   { name: 'Inventory Supplies', href: '/inventory', icon: Package },
-  { name: 'Reports', href: '/reports', icon: BarChart3 },
-  { name: 'Doctors & Staff', href: '/doctors', icon: UserCog },
+  { name: 'Doctors & Staff', href: '/doctors', icon: UserCheck },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -41,10 +39,10 @@ export default function Sidebar() {
   const [doctorName, setDoctorName] = useState('Dr. Iswariya');
 
   useEffect(() => {
-    function refreshName() {
+    async function refreshName() {
       try {
-        const config = JSON.parse(localStorage.getItem('LDC_CLINIC_CONFIG') || '{}');
-        if (config.superAdminName) {
+        const config = await syncLoadFromCloud('LDC_CLINIC_CONFIG', { superAdminName: 'Dr. Iswariya' });
+        if (config && config.superAdminName) {
           setDoctorName(config.superAdminName);
         } else {
           setDoctorName('Dr. Iswariya');
@@ -55,10 +53,13 @@ export default function Sidebar() {
     }
 
     refreshName();
+    const interval = setInterval(refreshName, 3000);
+
     if (typeof window !== 'undefined') {
       window.addEventListener('ldc_settings_updated', refreshName);
     }
     return () => {
+      clearInterval(interval);
       if (typeof window !== 'undefined') {
         window.removeEventListener('ldc_settings_updated', refreshName);
       }
@@ -66,59 +67,59 @@ export default function Sidebar() {
   }, []);
 
   return (
-    <div className="flex flex-col w-64 bg-slate-900 border-r border-slate-800 h-full shadow-xl text-white">
-      {/* Branding Header with Logo */}
-      <div className="h-18 flex items-center px-5 py-4 border-b border-slate-800/80 bg-slate-950/40">
-        <img src="/logo.png" className="w-10 h-10 object-cover rounded-xl border border-slate-700 shadow-lg mr-3 shrink-0" alt="Logo" />
-        <div className="overflow-hidden">
-          <h1 className="text-sm font-bold text-brand-300 tracking-wider uppercase truncate">Lakshmi</h1>
-          <p className="text-xs text-slate-300 font-semibold truncate">Dental Care</p>
+    <aside className="w-64 bg-slate-900 text-white flex flex-col justify-between shrink-0 shadow-2xl relative z-20">
+      <div>
+        
+        {/* Brand Header */}
+        <div className="h-16 flex items-center px-6 border-b border-slate-800 space-x-3 bg-slate-950/60">
+          <img src="/logo.png" className="w-8 h-8 rounded-xl object-cover border border-slate-700 shadow-md" alt="Logo" />
+          <span className="font-extrabold text-sm tracking-tight text-white">Lakshmi Dental</span>
         </div>
-      </div>
-      
-      {/* Navigation List */}
-      <div className="flex-1 overflow-y-auto py-5 px-3 space-y-1.5">
-        {navigation.map((item) => {
-          const isActive = pathname.startsWith(item.href);
-          const Icon = item.icon;
-          
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`
-                flex items-center px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200
-                ${isActive 
-                  ? 'bg-gradient-to-r from-brand-600 to-purple-600 text-white shadow-lg shadow-brand-600/30' 
-                  : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'}
-              `}
-            >
-              <Icon className={`w-4 h-4 mr-3 shrink-0 ${isActive ? 'text-white' : 'text-brand-300'}`} />
-              <span className="truncate">{item.name}</span>
-            </Link>
-          );
-        })}
+
+        {/* Navigation Items */}
+        <nav className="p-4 space-y-1.5">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href;
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center space-x-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
+                  isActive
+                    ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/30 font-extrabold scale-[1.02]'
+                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-100'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
+        </nav>
       </div>
 
-      {/* User Profile Footer */}
-      <div className="p-4 border-t border-slate-800 bg-slate-950/60">
-        <div className="flex items-center px-3 py-2 mb-2 rounded-xl bg-slate-850 border border-slate-800">
-          <div className="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-md">
-            {doctorName.charAt(0) || 'I'}
+      {/* User Footer Profile */}
+      <div className="p-4 border-t border-slate-800 bg-slate-950/40">
+        <div className="flex items-center justify-between p-2 rounded-xl bg-slate-800/50">
+          <div className="flex items-center space-x-3 overflow-hidden">
+            <div className="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center font-extrabold text-xs shadow-md shrink-0">
+              {doctorName.charAt(0) || 'I'}
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-xs font-extrabold text-white truncate">{doctorName}</p>
+              <p className="text-[10px] text-brand-400 font-semibold uppercase">Super Admin</p>
+            </div>
           </div>
-          <div className="ml-3 overflow-hidden">
-            <p className="text-xs font-extrabold text-slate-100 truncate">{doctorName}</p>
-            <p className="text-[10px] text-brand-300 truncate capitalize font-medium">Super Admin</p>
-          </div>
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition-colors"
+            title="Sign Out"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
-        <button
-          onClick={() => signOut({ callbackUrl: '/login' })}
-          className="flex w-full items-center px-3 py-2 text-xs font-bold text-rose-400 rounded-xl hover:bg-rose-950/40 hover:text-rose-300 transition-colors"
-        >
-          <LogOut className="w-4 h-4 mr-3" />
-          Sign Out
-        </button>
       </div>
-    </div>
+    </aside>
   );
 }
