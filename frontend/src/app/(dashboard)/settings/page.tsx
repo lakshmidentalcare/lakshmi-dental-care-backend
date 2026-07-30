@@ -32,6 +32,9 @@ export default function SettingsPage() {
       setClinicConfig({ ...DEFAULT_CONFIG, ...loaded });
     }
     loadSettings();
+
+    const interval = setInterval(loadSettings, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleSaveSettings = async (e: React.FormEvent) => {
