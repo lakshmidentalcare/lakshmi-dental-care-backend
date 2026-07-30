@@ -12,9 +12,13 @@ export async function syncSaveToCloud(key: string, data: any) {
 
   // Push to serverless cloud endpoint backed by GitHub DB for cross-device sync
   try {
-    await fetch('/api/sync', {
+    await fetch(`/api/sync?t=${Date.now()}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
+      cache: 'no-store',
       body: JSON.stringify({ key, data })
     });
   } catch (e) {
@@ -23,13 +27,22 @@ export async function syncSaveToCloud(key: string, data: any) {
 }
 
 export async function syncLoadFromCloud(key: string, defaultFallback: any) {
-  // Try loading from Vercel Cloud Sync API first for cross-device updates
+  // Try loading from Vercel Cloud Sync API first with cache-busting timestamp
   try {
-    const res = await fetch('/api/sync');
+    const res = await fetch(`/api/sync?t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    });
+
     if (res.ok) {
       const cloudState = await res.json();
-      if (cloudState && cloudState[key]) {
-        localStorage.setItem(key, JSON.stringify(cloudState[key]));
+      if (cloudState && cloudState[key] !== undefined) {
+        try {
+          localStorage.setItem(key, JSON.stringify(cloudState[key]));
+        } catch (e) {}
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('ldc_settings_updated'));
         }
