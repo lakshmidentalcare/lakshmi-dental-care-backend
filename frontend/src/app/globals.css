@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+  }
+}
+
+/* Custom premium styles */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  @apply bg-slate-100;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full hover:bg-slate-400;
+}
+
+/* FullCalendar Overrides */
+.fc-theme-standard .fc-scrollgrid {
+  @apply border-slate-200 rounded-xl overflow-hidden;
+}
+
+.fc-theme-standard td, .fc-theme-standard th {
+  @apply border-slate-100;
+}
+
+.fc-theme-standard .fc-col-header-cell {
+  @apply bg-slate-50 py-3 text-slate-500 font-medium;
+}
+
+.fc-button-primary {
+  @apply bg-brand-600 border-none shadow-sm hover:bg-brand-700 hover:shadow-md transition-all focus:ring-2 focus:ring-brand-500 focus:outline-none !important;
+}
+
+.fc-button-active {
+  @apply bg-brand-800 !important;
+}
+
+.fc-event {
+  @apply rounded-md border-none px-2 py-1 shadow-sm;
+}
